@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Router, Link, navigate } from "@reach/router";
 import { Form, Formik } from "formik";
 import { useLocalStorage } from "react-use";
 import uuid from "uuid";
+import Board from "./components/Board";
+import Layout from "./components/Layout";
+import Button from "./components/Button";
 
-const IssueForm = ({ initialData, onSubmit }) => {
+const IssueForm = ({ initialData, onSubmit, onCancel }) => {
   const handleSubmit = async (data, actions) => {
     try {
       await onSubmit(data);
@@ -14,42 +17,73 @@ const IssueForm = ({ initialData, onSubmit }) => {
     }
   };
   return (
-    <div>
-      <Formik
-        initialValues={initialData}
-        onSubmit={handleSubmit}
-        render={({ handleChange, values }) => (
-          <Form>
-            <label for="summary">Summary</label>
+    <Formik
+      enableReinitialize
+      initialValues={initialData}
+      onSubmit={handleSubmit}
+    >
+      {({ handleChange, handleSubmit, handleReset, values }) => (
+        <>
+          <Form
+            style={{
+              display: "grid",
+              gridTemplateColumns: "50%",
+              justifyContent: "center",
+              gridGap: 24,
+              gridTemplateRows: "auto auto auto 250px",
+              padding: 24
+            }}
+          >
+            <label htmlFor="summary">Summary</label>
             <input
+              autoFocus
               value={values.summary}
               onChange={handleChange}
               name="summary"
             />
-            <label for="description">Description</label>
+            <label htmlFor="description">Description</label>
             <textarea
               value={values.description}
               onChange={handleChange}
               name="description"
             ></textarea>
-            <button type="submit">submit</button>
+            <div className="actions">
+              <Button onClick={handleSubmit} type="submit">
+                submit
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={e => {
+                  e.preventDefault();
+                  handleReset();
+                  onCancel();
+                }}
+              >
+                cancel
+              </Button>
+            </div>
           </Form>
-        )}
-      ></Formik>
-    </div>
+        </>
+      )}
+    </Formik>
   );
 };
 
 const EditIssue = ({ issues, id, path, onSubmit }) => {
   const issue = issues.find(issue => issue.id === id);
-  console.log("TCL: EditIssue -> issue", issue);
-  return <IssueForm initialData={issue} onSubmit={onSubmit} />;
+
+  return (
+    <IssueForm
+      initialData={issue}
+      onSubmit={onSubmit}
+      onCancel={() => window.history.back()}
+    />
+  );
 };
 
 const CreateIssue = ({ path, onSubmit }) => {
   return (
-    <div>
-      <Link to="/issues">back</Link>
+    <>
       <IssueForm
         initialData={{
           id: uuid.v4(),
@@ -58,71 +92,30 @@ const CreateIssue = ({ path, onSubmit }) => {
           status: "TODO"
         }}
         onSubmit={onSubmit}
+        onCancel={() => window.history.back()}
+      />
+    </>
+  );
+};
+
+const IssuesView = ({ path, issues, onDeleteIssue, onUpdateStatus }) => {
+  return (
+    <div>
+      <Board
+        statuses={["TODO", "IN_PROGRESS", "DONE"]}
+        issues={issues}
+        onDeleteIssue={onDeleteIssue}
+        onUpdateStatus={onUpdateStatus}
       />
     </div>
   );
 };
 
-const IssueList = ({ title, issues, onUpdateStatus, onDeleteIssue }) => {
-  return (
-    <ul>
-      <p>{title}</p>
-      {issues.map(issue => {
-        console.log("TCL: IssuesView -> issue", issue);
-        return (
-          <li key={issue.id}>
-            {issue.summary}
-            <button onClick={() => onDeleteIssue(issue.id)}>remove</button>
-            <button onClick={() => navigate(`/issues/${issue.id}`)}>
-              edit
-            </button>
-            <select
-              value={issue.status}
-              onChange={e => {
-                onUpdateStatus(issue.id, e.target.value);
-              }}
-            >
-              <option value="TODO">todo</option>
-              <option value="IN_PROGRESS">in progress</option>
-            </select>
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
-
-const IssuesView = ({ path, issues, onDeleteIssue, onUpdateStatus }) => {
-  const [issuesTodo, setIssuesTodo] = useState([]);
-  const [issuesInProgress, setIssuesInProgress] = useState([]);
-  const [issuesDone, setIssuesDone] = useState([]);
-
-  useEffect(() => {
-    const filter = filter => issues.filter(issue => issue.status === filter);
-    setIssuesTodo(filter("TODO"));
-    setIssuesInProgress(filter("IN_PROGRESS"));
-    setIssuesDone(filter("DONE"));
-  }, [issues]);
-  return (
-    <div>
-      <Link to="new">new</Link>
-      <div className="issues-grid">
-        <IssueList title={`Todo (${issuesTodo.length})`} issues={issuesTodo} />
-        <IssueList
-          title={`In Progress (${issuesInProgress.length})`}
-          issues={issuesInProgress}
-        />
-        <IssueList title={`Done (${issuesDone.length})`} issues={issuesDone} />
-      </div>
-    </div>
-  );
-};
-
 const IssuePage = ({ path }) => {
+  // TODO: useRepository(issueRepository)
   const [issues, setIssues] = useLocalStorage("issues", []);
 
   const addIssue = issue => {
-    console.log("TCL: IssuePage -> issue", issue);
     setIssues([...issues, issue]);
     navigate("/issues");
   };
@@ -136,7 +129,6 @@ const IssuePage = ({ path }) => {
     setIssues(newIssues);
     navigate("/issues");
   };
-
   const updateStatus = (id, status) => {
     const index = issues.findIndex(issue => issue.id === id);
     const data = {
@@ -149,11 +141,14 @@ const IssuePage = ({ path }) => {
     navigate("/issues");
   };
 
-  useEffect(() => {
-    console.log(issues);
-  }, [issues]);
   return (
-    <div>
+    <Layout
+      actions={
+        <Link to="new">
+          <Button variant="contained">+ Create</Button>
+        </Link>
+      }
+    >
       <Router>
         <IssuesView
           path="/"
@@ -164,7 +159,7 @@ const IssuePage = ({ path }) => {
         <CreateIssue path="new" onSubmit={addIssue} />
         <EditIssue issues={issues} path=":id" onSubmit={updateIssue} />
       </Router>
-    </div>
+    </Layout>
   );
 };
 

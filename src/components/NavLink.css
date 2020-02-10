@@ -1,0 +1,24 @@
+.navlink:link,
+.navlink:visited,
+.navlink:hover,
+.navlink:active {
+  text-decoration: none;
+  /* background: var(--colors-primary); */
+  color: var(--colors-primary-background);
+}
+
+.navlink {
+  padding: 5pt;
+  background: transparent; /*var(--colors-primary);*/
+  color: var(--colors-primary-background);
+  box-sizing: border-box;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  opacity: 0.7;
+}
+
+.active {
+  border-bottom-color: white;
+  opacity: 1;
+}

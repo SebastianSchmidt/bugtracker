@@ -1,0 +1,9 @@
+.navbar {
+  background: #0747a6; /*var(--colors-primary);*/
+  height: 64px;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  position: fixed;
+}

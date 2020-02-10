@@ -1,5 +1,19 @@
 :root {
-  --colors-primary: "#0052CC";
-  --colors-primary-dark: "#172B4D";
-  --colors-primary-background: "white";
+  --colors-primary: #0052cc;
+  --colors-primary-dark: #172b4d;
+  --colors-primary-background: white;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: underline;
+  font-weight: 300;
+  color: var(--colors-primary-dark);
+}
+
+select:focus {
+  background-color: var(--colors-primary-dark);
+  color: var(--colors-primary-background);
 }

@@ -1,0 +1,6 @@
+.content {
+  box-sizing: border-box;
+  padding-top: 64px;
+  height: 100vh;
+  /* overflow: scroll; */
+}

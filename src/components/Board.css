@@ -1,0 +1,6 @@
+.board {
+  display: grid;
+  justify-content: space-around;
+  grid-template-rows: 100%;
+  height: 100%;
+}
